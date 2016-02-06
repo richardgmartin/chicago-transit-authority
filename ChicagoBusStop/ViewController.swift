@@ -21,6 +21,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // 1. set chicago as the region
+        
+        let chicagoLatitude:CLLocationDegrees = 41.8937362
+        let chicagoLongitude:CLLocationDegrees = -87.6375008
+        let chicagoLatDelta:CLLocationDegrees = 0.5
+        let chicagoLongDelta:CLLocationDegrees = 0.5
+        let span:MKCoordinateSpan = MKCoordinateSpanMake(chicagoLatDelta, chicagoLongDelta)
+        let location:CLLocationCoordinate2D = CLLocationCoordinate2DMake(chicagoLatitude, chicagoLongitude)
+        let region:MKCoordinateRegion = MKCoordinateRegionMake(location, span)
+        self.busMapView.setRegion(region, animated: true)
 
         // MARK: Import CTA JSON file and populate busStopObjects array
         
@@ -38,10 +49,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                     let busStopObject: Busstop = Busstop(busStopDictionary: dict)
                     busStopObjects.append(busStopObject)
                 }
-                for busStop:Busstop in busStopObjects {
-                    self.dropPinForLocation(busStop)
-                    print(busStopObjects.count)
-                }
+                
             }
             catch let error as NSError{
                 print("JSON Error: \(error.localizedDescription)")
@@ -49,35 +57,30 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.busStopTableView.reloadData()
             })
+            
+            // 2. assign pins to map to represent each cta bus stop
+            
+            for busStop:Busstop in busStopObjects {
+                self.dropPinForLocation(busStop)
+            }
+            
         }
         task.resume()
-        
-        // MARK: Create map view of CTA bus routes
-        
-        // 1. set chicago as the region
-        
-        let chicagoLatitude:CLLocationDegrees = 41.8333925
-        let chicagoLongitude:CLLocationDegrees = -88.0123393
-        let chicagoLatDelta:CLLocationDegrees = 0.1
-        let chicagoLongDelta:CLLocationDegrees = 0.1
-        let span:MKCoordinateSpan = MKCoordinateSpanMake(chicagoLatDelta, chicagoLongDelta)
-        let location:CLLocationCoordinate2D = CLLocationCoordinate2DMake(chicagoLatitude, chicagoLongitude)
-        let region:MKCoordinateRegion = MKCoordinateRegionMake(location, span)
-        busMapView.setRegion(region, animated: true)
-        
-        // 2. assign pins to map to represent each cta bus stop
-
-        
     }
+    
+    // MARK: drop pin for each CTA bus stop
+    
 
     func dropPinForLocation(busStop: Busstop) {
         
         let annotation = MKPointAnnotation()
+        let pin = MKAnnotationView(annotation: annotation, reuseIdentifier: nil)
         annotation.coordinate = CLLocationCoordinate2DMake(busStop.latitude, busStop.longitude)
         annotation.title = busStop.stopName
         annotation.subtitle = busStop.routes
         busMapView.addAnnotation(annotation)
         self.annotations.append(annotation)
+        pin.canShowCallout = true
     }
     
     // MARK: Segment selector logic
@@ -85,11 +88,11 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     @IBAction func segmentedControlChanged(sender: UISegmentedControl) {
         
         if sender.selectedSegmentIndex == 0 {
-            busStopTableView.hidden = true
-            busMapView.hidden = false
-        } else {
             busStopTableView.hidden = false
             busMapView.hidden = true
+        } else {
+            busStopTableView.hidden = true
+            busMapView.hidden = false
             
         }
     }

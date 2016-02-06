@@ -19,7 +19,7 @@ class Busstop: NSObject {
     var stopNumber: String
     var routes: String
     var addressURL: String
-    //    var intermodal: String
+    var intermodal: String
 
     
     init(busStopDictionary: NSDictionary ) {
@@ -33,9 +33,12 @@ class Busstop: NSObject {
         self.stopNumber = busStopDictionary["stop_id"] as! String
         self.routes = busStopDictionary["routes"] as! String
         self.addressURL = busStopDictionary["_address"] as! String
-        //        intermodal = busStopDictionary["inter_modal"] as! String
-
         
+        if busStopDictionary["inter_modal"] == nil {
+            intermodal = "No"
+        } else {
+            intermodal = busStopDictionary["inter_modal"] as! String
+        }
     }
 
 }
